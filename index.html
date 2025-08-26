@@ -1,0 +1,636 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infinite Uptime — Mobile Prototype</title>
+<style>
+  :root{ --brand-500:#2C7BE5; --brand-600:#1A61D1; --bg:#ffffff; --fg:#0b0b0c; --muted:#6b7280; --card:#f8f9fb; --border:#e5e7eb; --chip:#111827; --red:#D0021B; --amber:#F5A623; --green:#2ECC71; }
+  *{box-sizing:border-box} html,body{height:100%;}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#fff;color:var(--fg);}
+  .app{max-width:420px;margin:0 auto;height:100vh;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#fff}
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border);background:#fff}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 6px;color:#9ca3af;border:none;background:#fff}
+  .tab.active{color:#111827}
+  .screen{flex:1;display:flex;flex-direction:column}
+  .top{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);padding:12px}
+  .title-lg{font-weight:700;font-size:22px}
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:6px}
+  .seg button{padding:6px 10px;border:none;background:#fff;font-size:13px}
+  .seg button.active{background:var(--chip);color:#fff}
+  .kpis{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}
+  .chip{border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:13px;background:#fff;color:#111827}
+  .chip.active{background:var(--chip);color:#fff;border-color:transparent}
+  .list{flex:1;overflow:auto;background:#fafafa;padding:12px;display:flex;flex-direction:column;gap:10px}
+  .plant-card{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;box-shadow:0 1px 0 rgba(0,0,0,.02);cursor:pointer}
+  .donut{width:56px;height:56px}
+  .meta .title{font-weight:700;font-size:15px}
+  .meta .sub{color:var(--muted);font-size:12px;margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
+  .trend{color:#16a34a;font-size:12px}
+  .empty{padding:24px;text-align:center;color:#6b7280}
+  .btn{border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:13px;background:#fff}
+  .btn-primary{border:none;background:linear-gradient(90deg,var(--brand-500),var(--brand-600));color:#fff;box-shadow:0 1px 0 rgba(0,0,0,.05)}
+  .pill{border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:#fff;font-weight:600;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+  .row{display:flex;gap:8px;align-items:center}
+  .search{position:relative;margin-left:auto;width:180px}
+  .search input{width:100%;padding:8px 10px 8px 28px;border:1px solid var(--border);border-radius:10px;font-size:14px}
+  .search svg{position:absolute;left:8px;top:8px;fill:#9ca3af}
+  .chips{display:flex;gap:8px;margin-top:8px}
+  .btn-small{border:1px solid var(--border);border-radius:10px;padding:6px 10px;font-size:13px;background:#fff;margin-left:auto}
+  .cell{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+  .statusdot{width:10px;height:10px;border-radius:999px;margin-right:8px;display:inline-block}
+  .meta .equip{font-weight:700;font-size:14px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meta .subsmall{color:var(--muted);font-size:12px;margin-top:2px}
+  .open{margin-top:6px;background:var(--chip);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px}
+  .spark{width:120px;height:28px}
+  .iconbtn{border:none;background:transparent;padding:6px;border-radius:999px;color:#6b7280}
+  .iconbtn:hover{background:#f3f4f6}
+  .offline{background:#f3f4f6;color:#6b7280;border-radius:8px;padding:2px 6px;font-size:10px;margin-left:6px;display:inline-flex;gap:4px;align-items:center}
+  .detail{display:flex;flex-direction:column;height:100%}
+  .bar{position:sticky;top:0;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--border);padding:10px;background:#fff}
+  .badge{background:#f3f4f6;border-radius:999px;padding:2px 8px;font-size:12px;margin-left:6px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px}
+  .list-mini{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .list-mini li{display:flex;justify-content:space-between;background:#f9fafb;padding:8px;border-radius:10px;font-size:13px}
+  .rowbtns{display:flex;gap:8px}
+  .primary{background:var(--chip);color:#fff;border:none;border-radius:10px;padding:10px 12px}
+  .secondary{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 12px}
+  .toast{display:inline-flex;gap:8px;align-items:center;background:#fffbeb;color:#92400e;padding:8px 10px;border-radius:10px;border:1px solid #fde68a;font-size:12px}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:flex-end;justify-content:center;padding:12px}
+  .sheet{width:100%;max-width:420px;background:#fff;border-radius:16px 16px 0 0;padding:12px;border:1px solid var(--border)}
+  .handle{width:44px;height:4px;background:#e5e7eb;border-radius:999px;margin:6px auto 10px}
+  .sheet .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .sml{font-size:12px;color:#6b7280}
+  .hr{height:1px;background:#f1f5f9;margin:8px 0}
+  .segx{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .segx button{flex:1;border:none;background:#fff;padding:8px 10px;font-size:13px}
+  .segx button.active{background:var(--chip);color:#fff}
+  .report-row{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px}
+  .status-chip{border-radius:999px;padding:2px 8px;font-size:12px}
+  .st-open{background:#f3f4f6}
+  .st-pending{background:#FEF3C7}
+  .st-planned{background:#DBEAFE}
+  .st-taken{background:#DCFCE7}
+  .inline{display:inline-flex;gap:6px;align-items:center}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .banner{background:linear-gradient(90deg,var(--brand-500),var(--brand-600));color:#fff;border-radius:12px;padding:10px 12px;margin-top:8px;display:flex;justify-content:space-between;align-items:center}
+  .banner .btn{background:#fff;color:#111827;border-radius:10px;border:none;padding:6px 10px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="screen" class="screen"></div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="home">🏠<span class="sml">Home</span></button>
+    <button class="tab" data-tab="plants">🏭<span class="sml">Plants</span></button>
+    <button class="tab" data-tab="reports">📄<span class="sml">Reports</span></button>
+    <button class="tab" data-tab="settings">⚙️<span class="sml">Settings</span></button>
+  </nav>
+</div>
+
+<script>
+function hideAllModals(){ document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); }
+function showModal(el){ el.style.display='flex'; }
+function hideModal(el){ el.style.display='none'; }
+
+const rnd = (a,b)=>Math.floor(a+Math.random()*(b-a+1));
+const statusText = s => s==='red'?'Action Needed':s==='amber'?'Fault Suspected':'No Fault';
+const statusColor = s => s==='red'?'#D0021B':s==='amber'?'#F5A623':'#2ECC71';
+const EQUIP_NAMES = ['BALL MILL','SCRUBBER','CONVEYOR','GEARBOX','PUMP','FAN','BLOWER'];
+const ROLE = { CXO:'CXO', OPS:'OPS' };
+let role = localStorage.getItem('iu_role') || ROLE.CXO;
+
+function setRole(r){ role = r; localStorage.setItem('iu_role', r); hideAllModals(); Home(); highlightTab('home'); }
+
+function genTrend(len=14){
+  const pts=[]; let v=rnd(60,90);
+  for(let i=0;i<len;i++){ v+=rnd(-5,5); pts.push([i,Math.max(40,Math.min(110,v))]); }
+  return pts;
+}
+
+function donutSVG(g, a, r){
+  const total = g+a+r || 1;
+  const toAngle = v => (v/total)*360;
+  const segs = [
+    {val:g, color:'#2ECC71'},
+    {val:a, color:'#F5A623'},
+    {val:r, color:'#D0021B'}
+  ];
+  let start=0; const R=28, r2=16, cx=28, cy=28;
+  const parts = segs.map(s=>{
+    const end = start + toAngle(s.val);
+    const large = (end-start)>180?1:0;
+    const A = (ang)=>({x: cx + R*Math.cos((ang-90)*Math.PI/180), y: cy + R*Math.sin((ang-90)*Math.PI/180)});
+    const B = (ang)=>({x: cx + r2*Math.cos((ang-90)*Math.PI/180), y: cy + r2*Math.sin((ang-90)*Math.PI/180)});
+    const p1=A(start), p2=A(end), p3=B(end), p4=B(start);
+    const d = `M ${p1.x},${p1.y} A ${R},${R} 0 ${large} 1 ${p2.x},${p2.y} L ${p3.x},${p3.y} A ${r2},${r2} 0 ${large} 0 ${p4.x},${p4.y} Z`;
+    start = end;
+    return `<path d="${d}" fill="${s.color}"/>`;
+  }).join('');
+  return `<svg class="donut" viewBox="0 0 56 56">${parts}<text x="28" y="31" text-anchor="middle" font-size="10" fill="#111">${g+a+r}</text></svg>`;
+}
+
+function spark(data, color='#0f172a'){
+  const w=120,h=28,p=2, xs=data.map(d=>d[0]), ys=data.map(d=>d[1]);
+  const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
+  const sx=x=>p+(x-minX)/(maxX-minX||1)*(w-2*p);
+  const sy=y=>h-p-(y-minY)/(maxY-minY||1)*(h-2*p);
+  let d=''; data.forEach((pt,i)=>{ d+=(i?'L':'M')+sx(pt[0])+','+sy(pt[1])+' '; });
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round"/></svg>`;
+}
+
+const plants = Array.from({length:6}, (_,i)=> ({
+  id: 'PL-'+(i+1),
+  name: ['BPSL Angul','BPSL Dhenkanal','JSW Salem','JSW Dolvi','Tata KPO','NMDC Nagarnar'][i],
+  donut: { g:rnd(20,60), a:rnd(5,20), r:rnd(2,12) }
+}));
+
+function plantKPIs(p){
+  const actionsNeeded = p.donut.r;
+  const actionsTaken  = rnd(5, 40);
+  const totalFaults   = rnd(30, 160);
+  return { actionsNeeded, actionsTaken, totalFaults };
+}
+
+function mkItem(i){
+  const status = ['red','amber','green'][i%3];
+  return {
+    id:'EQ-'+(1000+i),
+    name:EQUIP_NAMES[i%EQUIP_NAMES.length]+'_'+i,
+    line:['Line A','Line B','Line C'][i%3],
+    status,
+    lastAlert:rnd(1,9)+' h ago',
+    trend:genTrend(),
+    offline:i%7===0,
+    alerts:[
+      {t:'2025-08-01 09:20', cause:'Alignment suspected'},
+      {t:'2025-07-30 14:03', cause:'Structural looseness'},
+      {t:'2025-07-28 18:11', cause:'Imbalance'}
+    ]
+  }
+}
+
+function Home(){ hideAllModals(); if(role==='CXO') return HomeCXO(); return HomeOps(); }
+
+function HomeCXO(){
+  const root = document.getElementById('screen');
+  root.innerHTML = `
+    <div class="top">
+      <div class="title-lg">Corporate</div>
+      <div class="seg">
+        <button class="segbtn active" data-t="7d">7d</button>
+        <button class="segbtn" data-t="30d">30d</button>
+        <button class="segbtn" data-t="custom">Custom</button>
+      </div>
+      <div class="kpis">
+        <button class="chip active" data-k="actionsNeeded">Actions Needed</button>
+        <button class="chip" data-k="actionsTaken">Actions Taken</button>
+        <button class="chip" data-k="totalFaults">Total Faults</button>
+      </div>
+    </div>
+    <div class="list" id="plist"></div>
+  `;
+  const cont = document.getElementById('plist');
+  const data = [...plants].sort((a,b)=> (b.donut.r - a.donut.r));
+  data.forEach(p=>{
+    const k = plantKPIs(p);
+    const card = document.createElement('div');
+    card.className='plant-card';
+    card.innerHTML = `
+      ${donutSVG(p.donut.g, p.donut.a, p.donut.r)}
+      <div class="meta">
+        <div class="title">${p.name}</div>
+        <div class="sub">
+          <span class="inline">Actions Needed: <b>${k.actionsNeeded}</b></span>
+          <span class="inline">Actions Taken: <b>${k.actionsTaken}</b></span>
+          <span class="inline">Total Faults: <b>${k.totalFaults}</b></span>
+        </div>
+        <div class="trend">▲ improving</div>
+      </div>
+    `;
+    card.onclick = ()=> { highlightTab('plants'); PlantsScreen(p.name); };
+    cont.appendChild(card);
+  });
+  if(!data.length){
+    cont.innerHTML = `<div class="empty">
+      No plants need attention.<br><br><button class="btn btn-primary" onclick="highlightTab('plants'); PlantsScreen()">View all plants</button>
+    </div>`;
+  }
+}
+
+function HomeOps(){
+  const root = document.getElementById('screen');
+  root.innerHTML = `
+    <div class="top">
+      <div class="title-lg">Today</div>
+      <div class="banner">
+        <div><strong id="needCount">0</strong> assets need action today</div>
+        <button class="btn" id="viewBtn">View</button>
+      </div>
+    </div>
+    <div id="plantsMount"></div>
+  `;
+  PlantsScreen('JSW BPSL', document.getElementById('plantsMount'), 'red');
+  setTimeout(()=>{
+    const count = document.querySelectorAll('#plantsMount .cell').length;
+    document.getElementById('needCount').textContent = count;
+  }, 50);
+  document.getElementById('viewBtn').onclick = ()=> { highlightTab('plants'); PlantsScreen('JSW BPSL'); };
+}
+
+function PlantsScreen(initialPlant, mount=null, preset='red'){
+  const root = mount || document.getElementById('screen');
+  hideAllModals();
+  root.innerHTML = `
+    <div class="top">
+      <div class="row">
+        <button class="pill" id="plantBtn">${initialPlant || 'JSW BPSL'} ▼</button>
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/></svg>
+          <input id="query" placeholder="Search equipment"/>
+        </div>
+      </div>
+      <div class="chips">
+        <button class="chip" data-filter="red">Action Needed</button>
+        <button class="chip" data-filter="amber">Fault Suspected</button>
+        <button class="chip" data-filter="green">No Fault</button>
+        <button class="btn-small" id="refreshBtn">Refresh</button>
+      </div>
+    </div>
+    <div class="list" id="elist"></div>
+    <div class="modal" id="infoModal" style="display:none">
+      <div class="sheet">
+        <div class="handle"></div>
+        <div id="infoBody"></div>
+      </div>
+    </div>
+  `;
+  const chips = Array.from(root.querySelectorAll('.chip'));
+  chips.forEach(ch=>{ if(ch.dataset.filter===preset) ch.classList.add('active'); });
+  const list = root.querySelector('#elist');
+  const modal = root.querySelector('#infoModal');
+  const infoBody = root.querySelector('#infoBody');
+  let items = Array.from({length:20}, (_,i)=>mkItem(i));
+  let filter=preset, q='';
+
+  function renderCells(append=false){
+    const data = items.filter(it=> it.status===filter).filter(it=> q? it.name.toLowerCase().includes(q): true);
+    if(!append) list.innerHTML='';
+    data.forEach(it=>{
+      const cell = document.createElement('div');
+      cell.className='cell';
+      cell.innerHTML = `
+        <div class="row" style="min-width:0;">
+          <span class="statusdot" style="background:${statusColor(it.status)}"></span>
+          <div class="meta">
+            <div class="equip">${it.name}${it.offline?`<span class="offline">⌁ offline</span>`:''}</div>
+            <div class="subsmall">${it.line} • ${it.lastAlert}</div>
+            <button class="open">Open</button>
+          </div>
+        </div>
+        <div class="row">
+          ${spark(it.trend)}
+          <button class="iconbtn" title="Info">ℹ️</button>
+        </div>
+      `;
+      cell.querySelector('.iconbtn').onclick = () => {
+        infoBody.innerHTML = `
+          <div class="row" style="justify-content:space-between;">
+            <div style="font-weight:700">${it.name} — Specs</div>
+            <button class="btn" id="closeInfo">Close</button>
+          </div>
+          <div class="hr"></div>
+          <div class="row" style="gap:20px;flex-wrap:wrap;font-size:14px">
+            <div><div class="sml">Equipment ID</div>${it.id}</div>
+            <div><div class="sml">Line</div>${it.line}</div>
+            <div><div class="sml">Status</div>${statusText(it.status)}</div>
+            <div><div class="sml">Last alert</div>${it.lastAlert}</div>
+          </div>`;
+        showModal(modal);
+        root.querySelector('#closeInfo').onclick=()=>hideModal(modal);
+        modal.onclick=(e)=>{ if(e.target===modal) hideModal(modal); };
+      };
+      cell.querySelector('.open').onclick = () => EquipmentDetail(it);
+      list.appendChild(cell);
+    });
+    const oldTail = list.querySelector('.tail'); if(oldTail) oldTail.remove();
+    const tail = document.createElement('div'); tail.className='sml tail'; tail.style.textAlign='center'; tail.style.padding='18px 0';
+    tail.textContent='Scroll to load more…'; list.appendChild(tail);
+  }
+
+  root.querySelectorAll('.chip').forEach(btn=>{
+    btn.onclick=()=>{
+      root.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); filter=btn.dataset.filter; hideAllModals(); renderCells();
+    };
+  });
+  root.querySelector('#query').oninput = (e)=>{ q = e.target.value.trim().toLowerCase(); hideAllModals(); renderCells(); };
+  root.querySelector('#refreshBtn').onclick = ()=>{
+    hideAllModals();
+    list.innerHTML='<div class="sml" style="text-align:center;padding:18px 0">Refreshing…</div>';
+    setTimeout(()=>{ items = Array.from({length:20}, (_,i)=>mkItem(i)); renderCells(); }, 500);
+  };
+
+  list.addEventListener('scroll', () => {
+    if(list.scrollTop + list.clientHeight >= list.scrollHeight - 30){
+      const start = items.length;
+      items = items.concat(Array.from({length:10}, (_,i)=>mkItem(start+i)));
+      hideAllModals(); renderCells(true);
+    }
+  });
+
+  renderCells();
+}
+
+function EquipmentDetail(item){
+  hideAllModals();
+  const root = document.getElementById('screen');
+  root.innerHTML = `
+    <div class="detail">
+      <div class="bar">
+        <button class="btn" id="backBtn">← Back</button>
+        <div style="font-weight:700">${item.name}</div>
+      </div>
+      <div style="padding:12px;display:flex;flex-direction:column;gap:12px;overflow:auto">
+        <div class="row" style="justify-content:space-between">
+          <div class="row">
+            <span class="statusdot" style="background:${statusColor(item.status)}"></span>
+            <span class="badge">${statusText(item.status)}</span>
+          </div>
+          <div class="sml">Last updated ${item.lastAlert}</div>
+        </div>
+
+        <div class="card">
+          <div style="font-weight:600;font-size:14px;margin-bottom:6px">Vibration Trend (7d)</div>
+          ${spark(item.trend, '#0f172a')}
+        </div>
+
+        <div class="card">
+          <div style="font-weight:700;margin-bottom:6px">Recent Anomaly Alerts</div>
+          <ul class="list-mini">
+            ${item.alerts.map(a=>`<li><span>${a.cause}</span><span class="sml">${a.t}</span></li>`).join('')}
+          </ul>
+        </div>
+
+        <div class="rowbtns">
+          <button class="primary" id="analyzeBtn">Analyze</button>
+          <button class="secondary" id="openReport">Open Report</button>
+        </div>
+
+        ${item.offline?`<span class="toast">⚠ Offline: details limited until connection restores</span>`:''}
+
+        <div class="row" style="gap:8px">
+          <button class="btn" id="shareBtn">Share via WhatsApp</button>
+          <button class="btn" id="shareEmail">Share via Email</button>
+        </div>
+      </div>
+      <div class="modal" id="shareModal" style="display:none">
+        <div class="sheet">
+          <div class="handle"></div>
+          <div style="text-align:center;font-weight:700">Share report link</div>
+          <div class="sheet grid" style="grid-template-columns:1fr 1fr;gap:10px;border:none;padding:0;margin-top:8px">
+            <button class="secondary">WhatsApp</button>
+            <button class="secondary">Email</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('backBtn').onclick = ()=> { if(role==='CXO') { highlightTab('plants'); PlantsScreen(); } else { Home(); } };
+  document.getElementById('openReport').onclick = ()=> { highlightTab('reports'); ReportsScreen('Open'); };
+  document.getElementById('analyzeBtn').onclick = ()=> alert('Lightweight analysis (stub)');
+  const shareModal = document.getElementById('shareModal');
+  document.getElementById('shareBtn').onclick = ()=> showModal(shareModal);
+  document.getElementById('shareEmail').onclick = ()=> showModal(shareModal);
+  shareModal.onclick = (e)=>{ if(e.target===shareModal) hideModal(shareModal); };
+}
+
+function ReportsScreen(initialTab='Open'){
+  hideAllModals();
+  const root = document.getElementById('screen');
+  root.innerHTML = `
+    <div class="top">
+      <div class="title-lg">Reports</div>
+      <div class="segx" id="seg">
+        <button class="segopt" data-s="Open">Open</button>
+        <button class="segopt" data-s="Action Pending">Action Pending</button>
+        <button class="segopt" data-s="Action Planned">Action Planned</button>
+        <button class="segopt" data-s="Action Taken">Action Taken</button>
+      </div>
+    </div>
+    <div class="list" id="rlist"></div>
+  `;
+  const seg = document.getElementById('seg');
+  const rlist = document.getElementById('rlist');
+  const reports = Array.from({length:16}, (_,i)=> ({
+    id:'RPT-'+(500+i),
+    equip: EQUIP_NAMES[i%EQUIP_NAMES.length]+'_'+(100+i),
+    updated: '2025-08-'+String(1+(i%9)).padStart(2,'0')+' 10:'+String(rnd(10,59)).padStart(2,'0'),
+    status: ['Open','Action Pending','Action Planned','Action Taken'][i%4],
+    planned: i%4===2? '2025-08-'+String(10+(i%10)).padStart(2,'0'): null
+  }));
+
+  function renderList(state){
+    Array.from(seg.children).forEach(b=> b.classList.toggle('active', b.dataset.s===state));
+    rlist.innerHTML='';
+    reports.filter(r=>r.status===state).forEach(r=>{
+      const row = document.createElement('div');
+      row.className='report-row';
+      row.innerHTML = `
+        <div>
+          <div style="font-weight:700">${r.id} — ${r.equip}</div>
+          <div class="sml">Updated ${r.updated}</div>
+        </div>
+        <div class="inline">
+          ${r.status==='Open'? `<span class="status-chip st-open">Open</span>`:''}
+          ${r.status==='Action Pending'? `<span class="status-chip st-pending">Action Pending</span>`:''}
+          ${r.status==='Action Planned'? `<span class="status-chip st-planned">Action Planned</span> ${r.planned? `<span class="badge">${r.planned}</span>`:''}`:''}
+          ${r.status==='Action Taken'? `<span class="status-chip st-taken">Action Taken</span>`:''}
+          <button class="btn">Open</button>
+        </div>
+      `;
+      row.querySelector('.btn').onclick = ()=> ReportDetail(r);
+      rlist.appendChild(row);
+    });
+    if(!rlist.children.length){
+      rlist.innerHTML = `<div class="empty">No reports in "${state}"</div>`;
+    }
+  }
+
+  seg.onclick = (e)=>{
+    if(e.target.classList.contains('segopt')){
+      renderList(e.target.dataset.s);
+    }
+  };
+  renderList(initialTab);
+}
+
+function ReportDetail(r){
+  hideAllModals();
+  const root = document.getElementById('screen');
+  root.innerHTML = `
+    <div class="detail">
+      <div class="bar">
+        <button class="btn" id="backBtn">← Back</button>
+        <div style="font-weight:700">Report ${r.id}</div>
+      </div>
+      <div style="padding:12px;display:flex;flex-direction:column;gap:12px;overflow:auto">
+        <div class="card">
+          <div style="font-weight:700;margin-bottom:6px">Summary</div>
+          <div class="sml">Diagnosis: Vibration suggests imbalance on ${r.equip}. Verify coupling and alignment.</div>
+        </div>
+
+        <div class="card">
+          <div style="font-weight:700;margin-bottom:6px">Action Editor</div>
+          <div class="grid2">
+            <div>
+              <div class="sml">Status</div>
+              <select id="statusSel">
+                <option>Open</option>
+                <option>Action Pending</option>
+                <option>Action Planned</option>
+                <option>Action Taken</option>
+              </select>
+            </div>
+            <div>
+              <div class="sml">Planned date</div>
+              <div class="inline">
+                <input type="date" id="plandate">
+                <button class="btn" id="p7">+7d</button>
+                <button class="btn" id="p14">+14d</button>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:8px">
+            <div class="sml">Comment</div>
+            <textarea id="comment" rows="3" style="width:100%"></textarea>
+          </div>
+          <div style="margin-top:10px" class="inline">
+            <button class="primary" id="saveBtn">Save</button>
+            <button class="secondary" id="pdfBtn">Open PDF (online)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-weight:700;margin-bottom:6px">History</div>
+          <ul class="list-mini">
+            <li><span>Action Pending → Action Planned</span><span class="sml">2025-07-30 14:00 by RE_01</span></li>
+            <li><span>Open → Action Pending</span><span class="sml">2025-07-29 11:20 by TECH_12</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('backBtn').onclick = ()=> ReportsScreen(r.status);
+  const statusSel = document.getElementById('statusSel');
+  statusSel.value = r.status;
+  document.getElementById('p7').onclick = ()=> setPlanOffset(7);
+  document.getElementById('p14').onclick = ()=> setPlanOffset(14);
+  document.getElementById('saveBtn').onclick = ()=> { alert('Saved ✔︎ (optimistic)'); ReportsScreen(statusSel.value); };
+  document.getElementById('pdfBtn').onclick = ()=> alert('Open PDF (requires network)');
+  function setPlanOffset(days){
+    const d = new Date(); d.setDate(d.getDate()+days);
+    const iso = d.toISOString().slice(0,10);
+    document.getElementById('plandate').value = iso;
+  }
+}
+
+function SettingsScreen(){
+  hideAllModals();
+  const root = document.getElementById('screen');
+  root.innerHTML = `
+    <div class="top">
+      <div class="title-lg">Settings</div>
+    </div>
+    <div class="list" style="padding:12px">
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:6px">Role (prototype only)</div>
+        <div class="segx" id="roleSeg">
+          <button class="segopt ${role==='CXO'?'active':''}" data-r="CXO">CXO</button>
+          <button class="segopt ${role==='OPS'?'active':''}" data-r="OPS">Ops / Floor</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700;margin-bottom:6px">Alert Preferences</div>
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div>Anomaly alerts (push)</div>
+            <div class="sml">Global toggle; per-plant overrides below</div>
+          </div>
+          <label><input type="checkbox" id="anomGlobal" checked> On</label>
+        </div>
+        <div class="hr"></div>
+        <div class="sml" style="margin-bottom:6px">Per-plant overrides</div>
+        <div id="plantOverrides"></div>
+        <div class="hr"></div>
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div>DRS report alerts</div>
+            <div class="sml">Always on</div>
+          </div>
+          <span class="badge">On</span>
+        </div>
+        <div class="hr"></div>
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div>Quiet hours</div>
+            <div class="sml">Default 22:00–06:00</div>
+          </div>
+          <div class="inline">
+            <input type="time" value="22:00"> — <input type="time" value="06:00">
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div class="row" style="justify-content:space-between">
+          <div>Email alerts</div>
+          <label><input type="checkbox" checked> On</label>
+        </div>
+        <div class="hr"></div>
+        <div class="row" style="justify-content:space-between">
+          <div>Language</div>
+          <select>
+            <option>English (EN)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  `;
+  const ov = document.getElementById('plantOverrides');
+  plants.forEach(p=>{
+    const row = document.createElement('div');
+    row.className='row'; row.style.justifyContent='space-between'; row.style.margin='6px 0';
+    row.innerHTML = `<span>${p.name}</span><label><input type="checkbox" checked> On</label>`;
+    ov.appendChild(row);
+  });
+  const roleSeg = document.getElementById('roleSeg');
+  roleSeg.onclick = (e)=>{
+    if(e.target.classList.contains('segopt')){
+      Array.from(roleSeg.children).forEach(b=>b.classList.remove('active'));
+      e.target.classList.add('active');
+      setRole(e.target.dataset.r);
+    }
+  };
+}
+
+function highlightTab(id){ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===id)); }
+
+function bindTabs(){
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.onclick = ()=>{ hideAllModals();
+      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      if(tab==='home') Home();
+      if(tab==='plants') PlantsScreen();
+      if(tab==='reports') ReportsScreen();
+      if(tab==='settings') SettingsScreen();
+    }
+  });
+}
+
+Home(); bindTabs();
+</script>
+</body>
+</html>
